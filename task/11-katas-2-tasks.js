@@ -34,7 +34,22 @@
  *
  */
 function parseBankAccount(bankAccount) {
-    throw new Error('Not implemented');
+    const numbers = {
+        ' _ | ||_|': 0,
+        '     |  |': 1,
+        ' _  _||_ ': 2,
+        ' _  _| _|': 3,
+        '   |_|  |': 4,
+        ' _ |_  _|': 5,
+        ' _ |_ |_|': 6,
+        ' _   |  |': 7,
+        ' _ |_||_|': 8,
+        ' _ |_| _|': 9
+    };
+
+    let res = bankAccount.split('\n').slice(0, 3).map(item => item.match(/.../g));
+
+    return +res[0].map((item, index) => numbers[item + res[1][index] + res[2][index]]).join("");
 }
 
 
@@ -63,7 +78,25 @@ function parseBankAccount(bankAccount) {
  *                                                                                                'characters.'
  */
 function* wrapText(text, columns) {
-    throw new Error('Not implemented');
+    let startOfLine = 0, endOfWord = 0;
+    let count = 0, i = 0;
+
+    while(text[i]) {
+        count++;
+
+        if (text[i] == ' ') {endOfWord = i;};
+
+        if (count > columns) {
+            yield text.substring(startOfLine, endOfWord);
+            startOfLine = endOfWord + 1;
+            count = 0;
+            i = endOfWord;
+        }
+
+        i++;
+    }
+
+    yield text.substring(startOfLine);
 }
 
 
@@ -100,7 +133,92 @@ const PokerRank = {
 }
 
 function getPokerHandRank(hand) {
-    throw new Error('Not implemented');
+    const getShape = card => card[card.length - 1];
+
+    const rankToNum = rank => isNaN(parseInt(rank)) ? (11 + ['J', 'Q', 'K', 'A'].indexOf(rank)) : parseInt(rank);
+
+    const getRank = card => rankToNum(card.length == 3 ? card.slice(0, 2) : card[0]);
+
+    const isSameShape = cards => cards.every(card => getShape(card) == getShape(cards[0]));
+
+
+
+    function countRanks(cards) {
+
+        const counters = Array.from({length: 13}, elem => 0);
+
+        for (let card of cards) {
+
+            counters[getRank(card) - 2]++;
+
+        }
+
+        return counters;
+
+    }
+
+
+
+    function isStraight (cards) {
+
+        const sorted = cards.map(card => getRank(card)).sort((a, b) => a - b);
+
+        if (sorted[0] == '2' && sorted[sorted.length - 1] == '14') {
+
+            sorted.unshift(sorted.pop());
+
+        }
+
+        for (let i = 1; i < sorted.length; i++) {
+
+            const diff = sorted[i] - sorted[i - 1];
+
+            if (diff != 1 && diff != -12) {
+
+                return false;
+
+            }
+
+        }
+
+
+
+        return true;
+
+    }
+
+
+
+    const ranks = countRanks(hand);
+
+    switch(true) {
+        case (isStraight(hand) && isSameShape(hand)):
+            return PokerRank.StraightFlush;
+
+        case (ranks.indexOf(4) != -1):
+            return PokerRank.FourOfKind;
+
+        case (ranks.indexOf(3) != -1 && ranks.indexOf(2) != -1):
+            return PokerRank.FullHouse;
+
+        case isSameShape(hand):
+            return PokerRank.Flush;
+
+        case isStraight(hand):
+            return PokerRank.Straight;
+
+        case ranks.indexOf(3) != -1:
+            return PokerRank.ThreeOfKind;
+
+        case ranks.indexOf(2) != -1 && ranks.lastIndexOf(2) != ranks.indexOf(2):
+            return PokerRank.TwoPairs;
+
+        case ranks.indexOf(2) != -1:
+            return PokerRank.OnePair;
+
+        default:
+            return PokerRank.HighCard;
+    }       
 }
 
 
@@ -135,7 +253,58 @@ function getPokerHandRank(hand) {
  *    '+-------------+\n'
  */
 function* getFigureRectangles(figure) {
-   throw new Error('Not implemented');
+    let a = figure.split('\n');
+    let answer = [];
+    let check = function bar(n, m) {
+        let i;
+        let j;
+
+        for (i = m;; i++) {
+            if (a[n - 1][i] == undefined || a[n - 1][i] == ' ' || a[n] == undefined) return;
+
+            if (a[n][i] != ' ') break;
+        }
+
+        let w = i;
+
+        for (j = n;; j++) {
+            if (a[j] == undefined || a[j][w] == ' ') return;
+
+            if (a[j][w - 1] != ' ') break;
+        }
+
+        let h = j;
+
+        for (i = w - 1;; i--) {
+            if (a[h][i] == undefined || a[h][i] == ' ' || a[h - 1] == undefined) return;
+
+            if (a[h - 1][i] != ' ') break;
+        }
+
+        if (i + 1 != m) return;
+
+        for (j = h - 1;; j--) {
+            if (a[j] == undefined || a[j][m - 1] == ' ') return;
+
+            if (a[j][m] != ' ') break;
+        }
+
+        if (j + 1 != n) return;
+
+        n = h - n;
+        m = w - m;
+        answer.push('+' + '-'.repeat(m) + '+\n' + ('|' + ' '.repeat(m) + '|\n').repeat(n) + '+' + '-'.repeat(m) + '+\n');
+    }
+
+    a.pop();
+
+    a.forEach((v, i) => v.split('').forEach((v, j) => {
+        if (v == '+') check(i + 1, j + 1);
+    }));
+
+    for (let index = 0; index < answer.length; index++) {
+        yield answer[index];       
+    }
 }
 
 
