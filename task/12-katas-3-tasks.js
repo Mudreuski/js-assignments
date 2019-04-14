@@ -28,7 +28,73 @@
  *   'NULL'      => false 
  */
 function findStringInSnakingPuzzle(puzzle, searchStr) {
-    throw new Error('Not implemented');
+    class RouteMap {
+        constructor() {
+            this.route = {};
+            this.width = puzzle[0].length;
+            this.height = puzzle.length;
+        }
+
+        key(x, y) {
+            return `${x},${y}`;
+        }
+
+        markAvailable(x, y) {
+            this.route[this.key(x, y)] = false;
+        }
+
+        markVisited(x, y) {
+            this.route[this.key(x, y)] = true;
+        }
+
+        isAvailable(x, y) {
+            return x >= 0
+                && x < this.width
+                && y >= 0
+                && y < this.height
+                && !this.route[this.key(x, y)];
+        }
+    }
+
+    function* getSiblings(x, y) {
+        yield [x - 1, y];
+        yield [x + 1, y];
+        yield [x, y - 1];
+        yield [x, y + 1];
+    }
+
+    function checkRoute(x, y, search, route) {
+        if (!route.isAvailable(x, y) || puzzle[y][x] !== search[0]) {
+            return false;
+        }
+
+        if (search.length === 1) {
+           return true;
+        }
+
+        route.markVisited(x, y);
+
+        const nextSearch = search.slice(1);
+
+        for (let [sx, sy] of getSiblings(x, y)) {
+            if (checkRoute(sx, sy, nextSearch, route)) {
+                return true;
+            }
+        }
+
+        route.markAvailable(x, y);
+        return false;
+    }
+
+    for (let y = 0; y < puzzle.length; ++y) {
+        for (let x = 0; x < puzzle[0].length; ++x) {
+            if (checkRoute(x, y, searchStr, new RouteMap())) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 
@@ -45,7 +111,29 @@ function findStringInSnakingPuzzle(puzzle, searchStr) {
  *    'abc' => 'abc','acb','bac','bca','cab','cba'
  */
 function* getPermutations(chars) {
-    throw new Error('Not implemented');
+    function permute(chars) {
+        if (chars.length == 1) {
+            return chars;
+        } else if (chars.length == 2) {
+            return [chars, chars[1] + chars[0]];
+        } else {
+            const permutations = [];
+
+            chars.split('').forEach((char, index, array) => {
+                let sub = [].concat(array);
+
+                sub.splice(index, 1);
+
+                permute(sub.join('')).forEach((permutation) => permutations.push(char + permutation));
+            });
+
+            return permutations;
+        }
+    }
+
+    for (let permutation of permute(chars)) {
+        yield permutation;
+    }
 }
 
 
@@ -65,7 +153,11 @@ function* getPermutations(chars) {
  *    [ 1, 6, 5, 10, 8, 7 ] => 18  (buy at 1,6,5 and sell all at 10)
  */
 function getMostProfitFromStockQuotes(quotes) {
-    throw new Error('Not implemented');
+    let sum = 0;
+
+	quotes.forEach((value, index) => sum += quotes.slice(index).sort((a, b) => b - a)[0] - value);
+
+	return sum;
 }
 
 
@@ -92,11 +184,21 @@ function UrlShortener() {
 UrlShortener.prototype = {
 
     encode: function(url) {
-        throw new Error('Not implemented');
+        let s = url.split('').reduce((pv, cv) => pv + (this.urlAllowedChars.indexOf(cv) < 10 ? '0' : '') + this.urlAllowedChars.indexOf(cv), '');
+        let answer = '';
+
+        if (s.length % 4 !== 0) s += '99';
+
+        while (s.length > 0) {
+            answer += String.fromCharCode(s.slice(0, 4));
+            s = s.slice(4);
+        }
+
+        return answer;
     },
     
     decode: function(code) {
-        throw new Error('Not implemented');
+        return code.split('').reduce((pv, cv) => pv += this.urlAllowedChars[Math.floor(cv.charCodeAt(0) / 100)] + (cv.charCodeAt(0) % 100 !== 99 ? this.urlAllowedChars[cv.charCodeAt(0) % 100] : ''), '');
     } 
 }
 
