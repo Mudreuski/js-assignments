@@ -17,8 +17,30 @@
  *  ]
  */
 function createCompassPoints() {
-    throw new Error('Not implemented');
-    var sides = ['N','E','S','W'];  // use array of cardinal directions only!
+    let resArr = [], direction = "", degrees = 0;
+    var sides = ['N', 'E', 'S', 'W'];  // use array of cardinal directions only!
+
+    for (let i = 0; i < sides.length; i++) {
+        let btwcardinal = (i == 0 || i == 2) ? (sides[i] + sides[i + 1]) : (sides[i == 3 ? 0 : i + 1] + sides[i]);
+
+        for (let count = 0; count < 8; count++) {
+            switch (count) {
+                case 0: direction = sides[i]; break;
+                case 1: direction = sides[i] + 'b' + sides[i == 3 ? 0 : i + 1]; break;
+                case 2: direction = sides[i] + btwcardinal; break;
+                case 3: direction = btwcardinal + "b" + sides[i]; break;
+                case 4: direction = btwcardinal; break;
+                case 5: direction = btwcardinal + "b" + sides[i == 3 ? 0 : i + 1]; break;
+                case 6: direction = sides[i == 3 ? 0 : i + 1] + btwcardinal; break;
+                case 7: direction = sides[i == 3 ? 0 : i + 1] + "b" + sides[i]; break;
+            }
+
+            resArr.push({ abbreviation: direction, azimuth: degrees });
+            degrees += 11.25;
+        }
+    }
+
+    return resArr;
 }
 
 
@@ -56,7 +78,37 @@ function createCompassPoints() {
  *   'nothing to do' => 'nothing to do'
  */
 function* expandBraces(str) {
-    throw new Error('Not implemented');
+    let regex = /{[^{}]*?}/g;
+    let isParsing = true;
+    let expanded = [str];
+
+    while (isParsing){   
+        isParsing = false;
+        let inner = []; 
+
+        for(let match of expanded){
+            let matches = match.match(regex);  
+
+            if (matches){ 
+                isParsing = true    
+                let splitted = matches[0].slice(1,-1).split(',');
+
+                for(let split of splitted){
+                    inner.push(match.replace(matches[0],split));
+                }
+            }else {
+                inner.push(match);
+            }      
+        }  
+
+        expanded = inner;
+    }
+
+    expanded = [...new Set(expanded)];
+
+    for (let string of expanded) {
+        yield string;
+    }
 }
 
 
@@ -88,7 +140,28 @@ function* expandBraces(str) {
  *
  */
 function getZigZagMatrix(n) {
-    throw new Error('Not implemented');
+    let matrix = [];
+
+    for (let i = 0; i < n; i++) {
+        matrix[i] = [];
+    }
+
+    let i = 0, j = 0;
+    const total = n * n;
+
+    for (let num = 0; num < total; num++) {
+        matrix[i][j] = num;
+
+        if ((i + j) % 2 == 0) {
+            (j + 1 < n) ? j ++ : i += 2;
+            if (i > 0) i --;
+        } else {
+            (i + 1 < n) ? i ++ : j += 2;
+            if (j > 0) j --;
+        }
+    }
+
+    return matrix;
 }
 
 
@@ -113,7 +186,25 @@ function getZigZagMatrix(n) {
  *
  */
 function canDominoesMakeRow(dominoes) {
-    throw new Error('Not implemented');
+    let result = Array(1);
+    result[0] = dominoes.shift();
+    let lastLength = 0;
+
+    while (lastLength != dominoes.length && dominoes.length > 0) {
+        lastLength = dominoes.length;
+
+        for (let i = 0; i < dominoes.length; i++) {
+            if (result[result.length - 1][1] == dominoes[i][0] && result[result.length - 1][0] != dominoes[i][1]) {
+                result[result.length] = dominoes[i];
+                dominoes.splice(i, 1);
+            } else if (result[result.length - 1][1] == dominoes[i][1] && result[result.length - 1][0] != dominoes[i][1]) {
+                result[result.length] = dominoes[i].reverse();
+                dominoes.splice(i, 1);
+            }
+        }
+    };
+
+    return dominoes.length == 0;
 }
 
 
@@ -137,7 +228,25 @@ function canDominoesMakeRow(dominoes) {
  * [ 1, 2, 4, 5]          => '1,2,4,5'
  */
 function extractRanges(nums) {
-    throw new Error('Not implemented');
+    var str = "";
+
+    for (let j = 0; j < nums.length; j++) {
+        let  i = 0;
+
+        if ((nums[j + 1] == nums[j] + 1) && (nums[j + 2] == nums[j] + 2)) {
+            while (nums[j + 1] - nums[j] == 1) {
+                i++;
+                j++;
+            }
+
+            str += `${nums[j - i]}-${nums[j]},`;
+
+        } else {
+            str += nums[j] + ",";
+        }
+    }
+
+    return str.slice(0, str.length - 1);
 }
 
 module.exports = {
